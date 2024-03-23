@@ -1,13 +1,19 @@
 
+from flask import Flask, request, jsonify
+
+from flask_cors import CORS
+
 import cv2
 
 import numpy as np
 
-from flask import Flask, request, jsonify
+import base64
 
 
 
 app = Flask(__name__)
+
+CORS(app)
 
 
 
@@ -44,6 +50,14 @@ def detect_objects():
     # Read the uploaded image file
 
     image = cv2.imdecode(np.fromstring(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
+
+    
+
+    # Encode the original image as base64
+
+    _, buffer = cv2.imencode('.jpg', image)
+
+    original_image_base64 = base64.b64encode(buffer).decode('utf-8')
 
     
 
@@ -145,13 +159,11 @@ def detect_objects():
 
     
 
-    # Create a list to store the detected objects
-
-    detected_objects = []
+    vehicle_count = 0
 
     
 
-    # Loop over the remaining detections
+    # Draw the bounding boxes and labels on the image
 
     for i in indexes:
 
@@ -163,23 +175,51 @@ def detect_objects():
 
         
 
-        # Add the detected object to the list
+        # Check if the detected object is a vehicle
 
-        detected_objects.append({
+        if label in ['car', 'truck', 'bus', 'motorcycle']:
 
-            'label': label,
+            vehicle_count += 1
 
-            'confidence': confidence,
+        
 
-            'bbox': [x, y, w, h]
+        # Draw the bounding box rectangle
 
-        })
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        
+
+        # Put the class label and confidence score on the image
+
+        label_text = f"{label}: {confidence:.2f}"
+
+        cv2.putText(image, label_text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     
 
-    # Return the detected objects as a JSON response
+    # Encode the image with detected objects as base64
 
-    return jsonify({'objects': detected_objects})
+    _, buffer = cv2.imencode('.jpg', image)
+
+    detected_image_base64 = base64.b64encode(buffer).decode('utf-8')
+
+    
+
+    # Return the base64-encoded images and vehicle count as JSON response with CORS header
+
+    response = jsonify({
+
+        'original_image_base64': original_image_base64,
+
+        'detected_image_base64': detected_image_base64,
+
+        'vehicle_count': vehicle_count
+
+    })
+
+    response.headers.add('Access-Control-Allow-Origin', '*')
+
+    return response
 
 
 
