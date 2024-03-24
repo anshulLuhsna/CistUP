@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"  # Map port 3000 on host to port 3000 on container
+    volumes:
+      - ./frontend:/frontend  # Mount the frontend directory as a volume
+    environment:
+      - NODE_ENV=development  # Set environment variable for Node.js
+    command: npm run dev  # Command to run for the frontend service
+
+  backend:
+    build:
+      context: ./app
+    ports:
+      - "5000:5000"  # Map port 5000 on host to port 5000 on container
+    volumes:
+      - ./app:/app  # Mount the app directory as a volume
+    environment:
+      - FLASK_ENV=development  # Set environment variable for Flask
+    command: flask run --host=0.0.0.0  # Command to run for the backend service

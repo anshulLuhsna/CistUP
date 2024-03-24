@@ -39,7 +39,7 @@ function App() {
 
     try {
 
-      const response = await axios.post('http://localhost:5000/detect', formData);
+      const response = await axios.post('http://127.0.0.1:5000/detect', formData);
       setOriginalImage(`data:image/jpeg;base64,${response.data.original_image_base64}`);
       setDetectedImage(`data:image/jpeg;base64,${response.data.detected_image_base64}`);
       setVehicleCount(response.data.vehicle_count)
