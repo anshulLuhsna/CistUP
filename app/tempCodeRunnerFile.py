@@ -1,0 +1,1 @@
+detected_image_base64
